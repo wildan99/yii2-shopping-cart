@@ -4,7 +4,6 @@ namespace yz\shoppingcart;
 
 use yii\base\Behavior;
 
-
 /**
  * Class DiscountBehavior
  * @package \yz\shoppingcart
@@ -24,6 +23,5 @@ class DiscountBehavior extends Behavior
      */
     public function onCostCalculation($event)
     {
-
     }
 }

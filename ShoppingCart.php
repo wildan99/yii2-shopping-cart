@@ -2,12 +2,10 @@
 
 namespace yz\shoppingcart;
 
-use Yii;
 use yii\base\Component;
-use yii\base\Event;
+use yii\base\InvalidConfigException;
 use yii\di\Instance;
 use yii\web\Session;
-
 
 /**
  * Class ShoppingCart
@@ -22,17 +20,16 @@ use yii\web\Session;
  */
 class ShoppingCart extends Component
 {
-    /** Triggered on position put */
-    const EVENT_POSITION_PUT = 'putPosition';
-    /** Triggered on position update */
-    const EVENT_POSITION_UPDATE = 'updatePosition';
     /** Triggered on after position remove */
     const EVENT_BEFORE_POSITION_REMOVE = 'removePosition';
     /** Triggered on any cart change: add, update, delete position */
     const EVENT_CART_CHANGE = 'cartChange';
     /** Triggered on after cart cost calculation */
     const EVENT_COST_CALCULATION = 'costCalculation';
-
+    /** Triggered on position put */
+    const EVENT_POSITION_PUT = 'putPosition';
+    /** Triggered on position update */
+    const EVENT_POSITION_UPDATE = 'updatePosition';
     /**
      * If true (default) cart will be automatically stored in and loaded from session.
      * If false - you should do this manually with saveToSession and loadFromSession methods
@@ -52,12 +49,13 @@ class ShoppingCart extends Component
     /**
      * @var CartPositionInterface[]
      */
-    protected $_positions = [];
+    protected $positions = [];
 
     public function init()
     {
-        if ($this->storeInSession)
+        if ($this->storeInSession) {
             $this->loadFromSession();
+        }
     }
 
     /**
@@ -65,9 +63,13 @@ class ShoppingCart extends Component
      */
     public function loadFromSession()
     {
-        $this->session = Instance::ensure($this->session, Session::className());
-        if (isset($this->session[$this->cartId]))
+        try {
+            $this->session = Instance::ensure($this->session, Session::className());
+        } catch (InvalidConfigException $e) {
+        }
+        if (isset($this->session[$this->cartId])) {
             $this->setSerialized($this->session[$this->cartId]);
+        }
     }
 
     /**
@@ -75,7 +77,10 @@ class ShoppingCart extends Component
      */
     public function saveToSession()
     {
-        $this->session = Instance::ensure($this->session, Session::className());
+        try {
+            $this->session = Instance::ensure($this->session, Session::className());
+        } catch (InvalidConfigException $e) {
+        }
         $this->session[$this->cartId] = $this->getSerialized();
     }
 
@@ -85,7 +90,7 @@ class ShoppingCart extends Component
      */
     public function setSerialized($serialized)
     {
-        $this->_positions = unserialize($serialized);
+        $this->positions = unserialize($serialized);
     }
 
     /**
@@ -94,23 +99,24 @@ class ShoppingCart extends Component
      */
     public function put($position, $quantity = 1)
     {
-        if (isset($this->_positions[$position->getId()])) {
-            $this->_positions[$position->getId()]->setQuantity(
-                $this->_positions[$position->getId()]->getQuantity() + $quantity);
+        if (isset($this->positions[$position->getId()])) {
+            $this->positions[$position->getId()]->setQuantity(
+                $this->positions[$position->getId()]->getQuantity() + $quantity);
         } else {
             $position->setQuantity($quantity);
-            $this->_positions[$position->getId()] = $position;
+            $this->positions[$position->getId()] = $position;
         }
         $this->trigger(self::EVENT_POSITION_PUT, new CartActionEvent([
             'action' => CartActionEvent::ACTION_POSITION_PUT,
-            'position' => $this->_positions[$position->getId()],
+            'position' => $this->positions[$position->getId()],
         ]));
         $this->trigger(self::EVENT_CART_CHANGE, new CartActionEvent([
             'action' => CartActionEvent::ACTION_POSITION_PUT,
-            'position' => $this->_positions[$position->getId()],
+            'position' => $this->positions[$position->getId()],
         ]));
-        if ($this->storeInSession)
+        if ($this->storeInSession) {
             $this->saveToSession();
+        }
     }
 
     /**
@@ -119,7 +125,7 @@ class ShoppingCart extends Component
      */
     public function getSerialized()
     {
-        return serialize($this->_positions);
+        return serialize($this->positions);
     }
 
     /**
@@ -133,22 +139,23 @@ class ShoppingCart extends Component
             return;
         }
 
-        if (isset($this->_positions[$position->getId()])) {
-            $this->_positions[$position->getId()]->setQuantity($quantity);
+        if (isset($this->positions[$position->getId()])) {
+            $this->positions[$position->getId()]->setQuantity($quantity);
         } else {
             $position->setQuantity($quantity);
-            $this->_positions[$position->getId()] = $position;
+            $this->positions[$position->getId()] = $position;
         }
         $this->trigger(self::EVENT_POSITION_UPDATE, new CartActionEvent([
             'action' => CartActionEvent::ACTION_UPDATE,
-            'position' => $this->_positions[$position->getId()],
+            'position' => $this->positions[$position->getId()],
         ]));
         $this->trigger(self::EVENT_CART_CHANGE, new CartActionEvent([
             'action' => CartActionEvent::ACTION_UPDATE,
-            'position' => $this->_positions[$position->getId()],
+            'position' => $this->positions[$position->getId()],
         ]));
-        if ($this->storeInSession)
+        if ($this->storeInSession) {
             $this->saveToSession();
+        }
     }
 
     /**
@@ -168,15 +175,16 @@ class ShoppingCart extends Component
     {
         $this->trigger(self::EVENT_BEFORE_POSITION_REMOVE, new CartActionEvent([
             'action' => CartActionEvent::ACTION_BEFORE_REMOVE,
-            'position' => $this->_positions[$id],
+            'position' => $this->positions[$id],
         ]));
         $this->trigger(self::EVENT_CART_CHANGE, new CartActionEvent([
             'action' => CartActionEvent::ACTION_BEFORE_REMOVE,
-            'position' => $this->_positions[$id],
+            'position' => $this->positions[$id],
         ]));
-        unset($this->_positions[$id]);
-        if ($this->storeInSession)
+        unset($this->positions[$id]);
+        if ($this->storeInSession) {
             $this->saveToSession();
+        }
     }
 
     /**
@@ -184,12 +192,13 @@ class ShoppingCart extends Component
      */
     public function removeAll()
     {
-        $this->_positions = [];
+        $this->positions = [];
         $this->trigger(self::EVENT_CART_CHANGE, new CartActionEvent([
             'action' => CartActionEvent::ACTION_REMOVE_ALL,
         ]));
-        if ($this->storeInSession)
+        if ($this->storeInSession) {
             $this->saveToSession();
+        }
     }
 
     /**
@@ -199,10 +208,11 @@ class ShoppingCart extends Component
      */
     public function getPositionById($id)
     {
-        if ($this->hasPosition($id))
-            return $this->_positions[$id];
-        else
+        if ($this->hasPosition($id)) {
+            return $this->positions[$id];
+        } else {
             return null;
+        }
     }
 
     /**
@@ -212,7 +222,7 @@ class ShoppingCart extends Component
      */
     public function hasPosition($id)
     {
-        return isset($this->_positions[$id]);
+        return isset($this->positions[$id]);
     }
 
     /**
@@ -220,7 +230,7 @@ class ShoppingCart extends Component
      */
     public function getPositions()
     {
-        return $this->_positions;
+        return $this->positions;
     }
 
     /**
@@ -228,14 +238,15 @@ class ShoppingCart extends Component
      */
     public function setPositions($positions)
     {
-        $this->_positions = array_filter($positions, function (CartPositionInterface $position) {
+        $this->positions = array_filter($positions, function (CartPositionInterface $position) {
             return $position->quantity > 0;
         });
         $this->trigger(self::EVENT_CART_CHANGE, new CartActionEvent([
             'action' => CartActionEvent::ACTION_SET_POSITIONS,
         ]));
-        if ($this->storeInSession)
+        if ($this->storeInSession) {
             $this->saveToSession();
+        }
     }
 
     /**
@@ -244,7 +255,7 @@ class ShoppingCart extends Component
      */
     public function getIsEmpty()
     {
-        return count($this->_positions) == 0;
+        return count($this->positions) == 0;
     }
 
     /**
@@ -253,8 +264,9 @@ class ShoppingCart extends Component
     public function getCount()
     {
         $count = 0;
-        foreach ($this->_positions as $position)
+        foreach ($this->positions as $position) {
             $count += $position->getQuantity();
+        }
         return $count;
     }
 
@@ -266,15 +278,16 @@ class ShoppingCart extends Component
     public function getCost($withDiscount = false)
     {
         $cost = 0;
-        foreach ($this->_positions as $position) {
+        foreach ($this->positions as $position) {
             $cost += $position->getCost($withDiscount);
         }
         $costEvent = new CostCalculationEvent([
             'baseCost' => $cost,
         ]);
         $this->trigger(self::EVENT_COST_CALCULATION, $costEvent);
-        if ($withDiscount)
+        if ($withDiscount) {
             $cost = max(0, $cost - $costEvent->discountValue);
+        }
         return $cost;
     }
 
@@ -292,6 +305,4 @@ class ShoppingCart extends Component
         }
         return md5(serialize($data));
     }
-
-
 }

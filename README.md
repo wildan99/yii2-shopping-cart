@@ -11,13 +11,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist omnilight/yii2-shopping-cart "*"
+php composer.phar require --prefer-dist wildan99/yii2-shopping-cart "*"
 ```
 
 or add
 
 ```json
-"omnilight/yii2-shopping-cart": "*"
+"wildan99/yii2-shopping-cart": "*"
 ```
 
 to the `require` section of your composer.json.

@@ -2,7 +2,6 @@
 
 namespace yz\shoppingcart;
 
-
 /**
  * Interface CartItemInterface
  * @property int $price
@@ -41,4 +40,4 @@ interface CartPositionInterface
      * @return int
      */
     public function getQuantity();
-} 
+}

@@ -1,8 +1,8 @@
 <?php
 
 namespace yz\shoppingcart;
-use yii\base\Event;
 
+use yii\base\Event;
 
 /**
  * Class CartActionEvent

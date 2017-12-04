@@ -4,7 +4,6 @@ namespace yz\shoppingcart;
 
 use yii\base\Event;
 
-
 /**
  * Class CostCalculationEvent
  * @package \yz\shoppingcart
@@ -22,4 +21,4 @@ class CostCalculationEvent extends Event
      * @var int
      */
     public $discountValue = 0;
-} 
+}

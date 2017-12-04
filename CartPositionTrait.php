@@ -2,8 +2,8 @@
 
 namespace yz\shoppingcart;
 
+use yii\base\BaseObject;
 use yii\base\Component;
-use yii\base\Object;
 
 /**
  * Trait CartPositionTrait
@@ -13,16 +13,16 @@ use yii\base\Object;
  */
 trait CartPositionTrait
 {
-    protected $_quantity;
+    protected $quantity;
 
     public function getQuantity()
     {
-        return $this->_quantity;
+        return $this->quantity;
     }
 
     public function setQuantity($quantity)
     {
-        $this->_quantity = $quantity;
+        $this->quantity = $quantity;
     }
 
     /**
@@ -37,10 +37,12 @@ trait CartPositionTrait
         $costEvent = new CostCalculationEvent([
             'baseCost' => $cost,
         ]);
-        if ($this instanceof Component)
+        if ($this instanceof Component) {
             $this->trigger(CartPositionInterface::EVENT_COST_CALCULATION, $costEvent);
-        if ($withDiscount)
+        }
+        if ($withDiscount) {
             $cost = max(0, $cost - $costEvent->discountValue);
+        }
         return $cost;
     }
-} 
+}
